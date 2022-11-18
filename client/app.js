@@ -8,30 +8,42 @@ const messageContentInput = document.getElementById('message-content');
 
 let userName = "";
 
-function login(event) {
-    event.preventDefault();
+const socket = io();
+
+socket.on('message', ({ author, content }) => addMessage(author, content))
+socket.on('login', (userName) => login(userName))
+
+
+function login(e) {
+    e.preventDefault();
 
     if(userNameInput.value == ''){
         alert('Login cannot be empty')
     } else {
         userName = userNameInput.value;
-    
+        socket.emit('login', userName )
+
         messagesSection.classList.add('show');
         loginForm.classList.remove('show');
     }
     
 }
 
-function sendMessage(event) {
-    event.preventDefault();
-    console.log('SendMessage');
-    if( messageContentInput.value == '') {
-        alert('Message cannot be empty')
-    } else {
-        addMessage(userName, messageContentInput.value);
-        messageContentInput.value = '';
+function sendMessage(e) {
+    e.preventDefault();
+  
+    let messageContent = messageContentInput.value;
+  
+    if(!messageContent.length) {
+      alert('You have to type something!');
     }
-}
+    else {
+      addMessage(userName, messageContent);
+      socket.emit('message', { author: userName, content: messageContent })
+      messageContentInput.value = '';
+    }
+  
+  }
 
 function addMessage(author, content) {
     const message = document.createElement('li');
